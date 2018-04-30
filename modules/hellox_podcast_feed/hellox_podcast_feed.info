@@ -1,0 +1,3 @@
+name = Hello X Podcast Feed
+description = A module that mirrors the Blubrry podcast RSS feed.
+core = 7.x

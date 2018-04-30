@@ -1,0 +1,12 @@
+<?php
+function hellox_feed_pager_views_pre_view(&$view, &$display_id, &$args) {
+  if ($view->name === 'news_feed') {
+    $pager = null;
+
+    if ($_GET["offset"] and ctype_digit($_GET['offset'])) {
+      $pager = $view->display_handler->get_option('pager');
+      $pager['options']['offset'] = (int)$_GET['offset'];
+      $view->display_handler->override_option('pager', $pager);
+    }
+  }
+}
