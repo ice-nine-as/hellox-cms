@@ -1,0 +1,79 @@
+diff --git a/destinations.s3.inc b/destinations.s3.inc
+index 0d4272a..6a5ff2a 100644
+--- a/destinations.s3.inc
++++ b/destinations.s3.inc
+@@ -9,11 +9,11 @@ use Guzzle\Plugin\Log\LogPlugin;
+ 
+ /**
+  * @file
+- * Functions to handle the dropbox backup destination.
++ * Functions to handle the Amazon S3 backup destination.
+  */
+ 
+ /**
+- * A destination for sending database backups to a Dropbox account.
++ * A destination for sending database backups to an Amazon S3 bucket.
+  *
+  * @ingroup backup_migrate_destinations
+  */
+@@ -34,6 +34,7 @@ class backup_migrate_destination_s3_compatible extends backup_migrate_destinatio
+       'file_directory' => '',
+       's3_timeout' => '',
+       's3_proxy' => '',
++      's3_region' => '',
+       's3_min_part_size' => '',
+       's3_debug' => 0,
+       's3_retries' => '',
+@@ -95,6 +96,11 @@ class backup_migrate_destination_s3_compatible extends backup_migrate_destinatio
+       'secret'   => $this->s3_secret(),
+     );
+ 
++    if(!empty($this->settings['s3_region'])) {
++      $config['region'] = $this->settings['s3_region'];
++      $config['signature'] = 'v4';
++    }
++
+     if (!empty($this->settings['s3_proxy'])) {
+       $config['request.options'] = array(
+         'proxy' => $this->settings['s3_proxy'],
+@@ -255,6 +261,11 @@ class backup_migrate_destination_s3_compatible extends backup_migrate_destinatio
+           'secret'   => empty($form_state['values']['pass']) ? $form_state['values']['old_password'] : $form_state['values']['pass'],
+         );
+ 
++       if(!empty($form_state['values']['s3_region'])) {
++          $config['region'] = $form_state['values']['s3_region'];
++          $config['signature'] = 'v4';
++        }
++
+        if (!empty($form_state['values']['s3_proxy'])) {
+           $config['request.options'] = array(
+             'proxy' => $form_state['values']['s3_proxy'],
+@@ -304,6 +315,7 @@ class backup_migrate_destination_s3_compatible extends backup_migrate_destinatio
+     $this->settings['s3_timeout'] = $form_state['values']['s3_timeout'];
+     $this->settings['s3_proxy'] = $form_state['values']['s3_proxy'];
+     $this->settings['s3_min_part_size'] = $form_state['values']['s3_min_part_size'];
++    $this->settings['s3_region'] = $form_state['values']['s3_region'];
+     $this->settings['s3_debug'] = $form_state['values']['s3_debug'];
+     $this->settings['s3_retries'] = $form_state['values']['s3_retries'];
+ 
+@@ -360,6 +372,20 @@ class backup_migrate_destination_s3_compatible extends backup_migrate_destinatio
+       '#weight' => 25,
+     );
+ 
++    $form['s3_region'] = array(
++      '#type' => 'textfield',
++      '#title' => t('S3 region'),
++      '#default_value' => $this->settings['s3_region']?$this->settings['s3_region']:'',
++      '#description' => t(
++        'Optionally specify region which is needed for signature version authentication: !link1, !link2',
++        array(
++          '!link1' => l('S3 regions', 'https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region', array('absolute' => TRUE)),
++          '!link2' => l('Read about the region setting', 'https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region', array('absolute' => TRUE)),
++        )
++      ),
++      '#weight' => 30,
++    );
++
+     $form['s3_advanced'] = array(
+       '#type' => 'fieldset',
+       '#title' => t('Advanced'),
